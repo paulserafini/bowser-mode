@@ -43,6 +43,9 @@
   (when (string= extension "pdf")
     (start-process "" nil "zathura" selection))
 
+  (when (member extension text)
+    (find-file-other-window selection))
+
   (when (member extension images)
     (start-process "" nil "sxiv" selection))
 
