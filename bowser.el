@@ -6,10 +6,6 @@
     map)
   "Keymap for bowser")
 
-;;;###autoload
-;;;(add-to-list 'auto-mode-alist '("\\.wpd\\'" . wpdl-mode))
-
-
 (defun open-selection ()
   "Open the selected file or directory"
 
@@ -19,8 +15,8 @@
 
   ;; (interactive)
 
-  (if (not (boundp 'current-directory))
-      (setq current-directory "/home/paul/"))
+  ;; (if (not (boundp 'current-directory))
+  ;;     (setq current-directory "/home/paul/"))
 
   (setq selection (thing-at-point 'line t))
   (setq selection (replace-regexp-in-string "\n" "" selection))
@@ -54,11 +50,13 @@
 
 (defun bowser-mode ()
   "A simple file browser"
+  (switch-to-buffer "bowser")
   (interactive)
   (kill-all-local-variables)
   (use-local-map bowser-mode-map)
   (erase-buffer)
-  (call-process "ls" nil t nil "-a" "-p" "--group-directories-first" "/home/paul/")
+  (setq current-directory (concat "/home/" (user-login-name) "/"))
+  (call-process "ls" nil t nil "-a" "-p" "--group-directories-first" current-directory)
   (setq major-mode 'bowser-mode)
   (setq mode-name "bowser")
   (run-hooks 'bowser-mode-hook))
