@@ -16,6 +16,8 @@
   "Keymap for bowser")
 
 (defun bowser-open-with ()
+  "Open the selected file with a specified application"
+
   (interactive)
   (setq selection (thing-at-point 'line t))
   (setq selection (replace-regexp-in-string "\n" "" selection))
@@ -23,23 +25,21 @@
   (setq application (read-string "Application:"))
   (start-process "" nil application selection))
 
-
 (defun open-selection ()
   "Open the selected file or directory"
 
   (interactive)
 
-  ;; make variables other than current-directory local
-
+  ;; get the full path of the selected file
   (setq selection (thing-at-point 'line t))
   (setq selection (replace-regexp-in-string "\n" "" selection))
   (setq selection (concat current-directory selection))
 
-  ;; get possible extensions from the selected file/directory
+  ;; get the extension and last character from file
   (setq last-character (substring selection -1))
   (setq extension (file-name-extension selection))
 
-  ;; setup file associations
+  ;; define file associations
   (setq images '("jpeg" "jpg" "png"))
   (setq videos '("avi" "mkv" "mp4"))
   (setq text '("csv" "el" "epub" "org" "R" "sh" "tex" "txt"))
@@ -61,6 +61,8 @@
     (start-process "" nil "mpv" selection)))
 
 (defun bowser-mode-delete ()
+  "Delete the marked file(s), with prompt"
+
   (interactive)
   (if (y-or-n-p "Are you sure you want to delete the marked files?")
       (dolist (file marked)
@@ -70,6 +72,8 @@
   (bowser-mode-refresh))
 
 (defun bowser-mode-refresh ()
+  "Refresh the directory"
+
   (interactive)
   (erase-buffer)
   (call-process "ls" nil t nil hidden-variable "-p" "--group-directories-first" current-directory)
@@ -78,6 +82,8 @@
   (goto-char (point-min)))
 
 (defun bowser-mode-mark ()
+  "Mark files for copying, moving, or deleting"
+
   (interactive)
   (setq marked-name (thing-at-point 'line t))
   (setq marked-name (replace-regexp-in-string "\n" "" marked-name))
@@ -91,18 +97,24 @@
 	       (replace-match "  ")))))
 
 (defun bowser-mode-copy ()
+  "Add marked files to the copy list"
+
   (interactive)
   (setq bowser-cp-list marked)
   (setq marked '())
   (setq bowser-mv-list '()))
 
 (defun bowser-mode-cut ()
+  "Add marked files to the cut list"
+
   (interactive)
   (setq bowser-mv-list marked)
   (setq marked '())
   (setq bowser-cp-list '()))
 
 (defun bowser-mode-paste ()
+  "Paste copied or cut files to current directory"
+
   (interactive)
   (dolist (file bowser-cp-list)
   (start-process "" nil "cp" file current-directory))
@@ -112,6 +124,8 @@
   (bowser-mode-refresh))
 
 (defun bowser-rename ()
+  "Rename the selected file"
+
   (interactive)
   (setq selection (thing-at-point 'line t))
   (setq selection (replace-regexp-in-string "\n" "" selection))
@@ -122,11 +136,15 @@
   (bowser-mode-refresh))
 
 (defun bowser-mode-ascend ()
+  "Move to the parent directory"
+
   (interactive)
   (setq current-directory (file-name-directory (directory-file-name current-directory)))
   (bowser-mode-refresh))
 
 (defun bowser-mode-show-hidden ()
+  "Toggle hidden files"
+
   (interactive)
   (if (string= hidden-variable "-A")
       (setq hidden-variable "-1")
@@ -134,6 +152,8 @@
   (bowser-mode-refresh))
 
 (defun bowser-mode-jump ()
+  "Fuzzy search all the directories under the home folder"
+
   (interactive)
   (setq find-command (concat "find " home-directory "  -type d"))
   (setq output (shell-command-to-string find-command))
@@ -145,6 +165,7 @@
 
 (defun bowser-mode ()
   "A simple file browser"
+
   (switch-to-buffer "bowser")
   (interactive)
   (kill-all-local-variables)
