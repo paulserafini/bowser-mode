@@ -6,6 +6,8 @@
     (define-key map (kbd "M-p") 'bowser-mode-cp)
     (define-key map (kbd "M-m") 'bowser-mode-mark)
     (define-key map (kbd "M-x") 'bowser-mode-delete)
+    (define-key map (kbd "M-h") 'bowser-mode-ascend)
+    (define-key map (kbd "M-e") 'bowser-mode-show-hidden)
     map)
   "Keymap for bowser")
 
@@ -32,7 +34,7 @@
   (when (string= last-character "/")
     (setq current-directory selection)
     (erase-buffer)
-    (call-process "ls" nil t nil "-a" "-p" "--group-directories-first" current-directory))
+    (call-process "ls" nil t nil hidden-variable "-p" "--group-directories-first" current-directory))
 
   (when (string= extension "pdf")
     (start-process "" nil "zathura" selection))
@@ -53,7 +55,7 @@
   (setq selection (concat current-directory selection))
   (start-process "" nil "rm" selection)
   (erase-buffer)
-  (call-process "ls" nil t nil "-a" "-p" "--group-directories-first" current-directory))
+  (call-process "ls" nil t nil "" "-p" "--group-directories-first" current-directory))
 
 (defun bowser-mode-mark ()
   (interactive)
@@ -66,14 +68,28 @@
   (setq target-path (concat current-directory marked-name))
   (start-process "" nil "cp" marked-path target-path)
   (erase-buffer)
-  (call-process "ls" nil t nil "-a" "-p" "--group-directories-first" current-directory))
+  (call-process "ls" nil t nil hidden-variable "-p" "--group-directories-first" current-directory))
 
 (defun bowser-mode-mv ()
   (interactive)
   (setq target-path (concat current-directory marked-name))
   (start-process "" nil "mv" marked-path target-path)
   (erase-buffer)
-  (call-process "ls" nil t nil "-a" "-p" "--group-directories-first" current-directory))
+  (call-process "ls" nil t nil hidden-variable "-p" "--group-directories-first" current-directory))
+
+(defun bowser-mode-ascend ()
+  (interactive)
+  (setq current-directory (file-name-directory (directory-file-name current-directory)))
+  (erase-buffer)
+  (call-process "ls" nil t nil hidden-variable "-p" "--group-directories-first" current-directory))
+
+(defun bowser-mode-show-hidden ()
+  (interactive)
+  (if (string= hidden-variable "-a")
+      (setq hidden-variable "-1")
+      (setq hidden-variable "-a"))
+  (erase-buffer)
+  (call-process "ls" nil t nil hidden-variable "-p" "--group-directories-first" current-directory))
 
 (defun bowser-mode ()
   "A simple file browser"
@@ -83,7 +99,8 @@
   (use-local-map bowser-mode-map)
   (erase-buffer)
   (setq current-directory (concat "/home/" (user-login-name) "/"))
-  (call-process "ls" nil t nil "-a" "-p" "--group-directories-first" current-directory)
+  (setq hidden-variable "-1")
+  (call-process "ls" nil t nil hidden-variable "-p" "--group-directories-first" current-directory)
   (setq major-mode 'bowser-mode)
   (setq mode-name "bowser")
   (run-hooks 'bowser-mode-hook))
