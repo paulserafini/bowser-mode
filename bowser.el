@@ -60,6 +60,8 @@
   (interactive)
   (erase-buffer)
   (call-process "ls" nil t nil hidden-variable "-p" "--group-directories-first" current-directory)
+  (unhighlight-regexp ".*\/")
+  (highlight-regexp ".*\/" "font-lock-function-name-face")
   (goto-char (point-min)))
 
 (defun bowser-mode-mark ()
@@ -113,6 +115,8 @@
   (bowser-mode-refresh)
   (setq major-mode 'bowser-mode)
   (setq mode-name "bowser")
-  (run-hooks 'bowser-mode-hook))
+  (run-hooks 'bowser-mode-hook)
+  (linum-mode)
+  (hl-line-mode))
 
 (provide 'bowser-mode)
