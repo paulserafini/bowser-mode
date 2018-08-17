@@ -62,12 +62,11 @@
 
 (defun bowser-mode-delete ()
   (interactive)
-  (setq selection (thing-at-point 'line t))
-  (setq selection (replace-regexp-in-string "\n" "" selection))
-  (setq selection (concat current-directory selection))
   (if (y-or-n-p "Are you sure you want to delete the marked files?")
       (dolist (file marked)
-	(start-process "" nil "rm" file current-directory)))
+	(if (string= (substring file -1) "/")
+	    (start-process "" nil "rm" "-r" file)
+	    (start-process "" nil "rm" file))))
   (bowser-mode-refresh))
 
 (defun bowser-mode-refresh ()
