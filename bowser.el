@@ -11,6 +11,7 @@
     (define-key map (kbd "M-j") 'bowser-mode-jump)
     (define-key map (kbd "M-j") 'bowser-mode-jump)
     (define-key map (kbd "M-o") 'bowser-open-with)
+    (define-key map (kbd "M-r") 'bowser-rename)
     map)
   "Keymap for bowser")
 
@@ -91,6 +92,16 @@
   (interactive)
   (setq target-path (concat current-directory marked-name))
   (start-process "" nil "mv" marked-path target-path)
+  (bowser-mode-refresh))
+
+(defun bowser-rename ()
+  (interactive)
+  (setq new-name (read-string "New name: "))
+  (setq selection (thing-at-point 'line t))
+  (setq selection (replace-regexp-in-string "\n" "" selection))
+  (setq selection (concat current-directory selection))
+  (setq new-name (concat current-directory new-name))
+  (start-process "" nil "mv" selection new-name)
   (bowser-mode-refresh))
 
 (defun bowser-mode-ascend ()
