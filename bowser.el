@@ -9,8 +9,19 @@
     (define-key map (kbd "M-h") 'bowser-mode-ascend)
     (define-key map (kbd "M-e") 'bowser-mode-show-hidden)
     (define-key map (kbd "M-j") 'bowser-mode-jump)
+    (define-key map (kbd "M-j") 'bowser-mode-jump)
+    (define-key map (kbd "M-o") 'bowser-open-with)
     map)
   "Keymap for bowser")
+
+(defun bowser-open-with ()
+  (interactive)
+  (setq selection (thing-at-point 'line t))
+  (setq selection (replace-regexp-in-string "\n" "" selection))
+  (setq selection (concat current-directory selection))
+  (setq application (read-string "Application:"))
+  (start-process "" nil application selection))
+
 
 (defun open-selection ()
   "Open the selected file or directory"
@@ -89,9 +100,9 @@
 
 (defun bowser-mode-show-hidden ()
   (interactive)
-  (if (string= hidden-variable "-a")
+  (if (string= hidden-variable "-A")
       (setq hidden-variable "-1")
-      (setq hidden-variable "-a"))
+      (setq hidden-variable "-A"))
   (bowser-mode-refresh))
 
 (defun bowser-mode-jump ()
@@ -101,6 +112,7 @@
   (setq output (split-string output "\n"))
   (setq output (remove "" output))
   (setq current-directory (completing-read "File: " output))
+  (setq current-directory (concat current-directory "/"))
   (bowser-mode-refresh))
 
 (defun bowser-mode ()
