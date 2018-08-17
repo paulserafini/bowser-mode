@@ -163,6 +163,21 @@
   (setq current-directory (concat current-directory "/"))
   (bowser-mode-refresh))
 
+(defun bowser-open-bookmark ()
+  "Open a bookmarked directory"
+
+  (interactive)
+  (setq current-directory (completing-read "File: " bookmarks))
+  (setq current-directory (concat current-directory "/"))
+  (bowser-mode-refresh))
+
+(defun bowser-create-bookmark ()
+  "Add the current directory to the bookmarks list"
+
+  (interactive)
+  (add-to-list 'bookmarks current-directory))
+
+
 (defun bowser-mode ()
   "A simple file browser"
 
@@ -174,6 +189,7 @@
   (setq current-directory home-directory)
   (setq hidden-variable "-1")
   (setq marked '())
+  (setq bookmarks '())
   (bowser-mode-refresh)
   (setq major-mode 'bowser-mode)
   (setq mode-name "bowser")
