@@ -8,6 +8,7 @@
     (define-key map (kbd "M-x") 'bowser-mode-delete)
     (define-key map (kbd "M-h") 'bowser-mode-ascend)
     (define-key map (kbd "M-e") 'bowser-mode-show-hidden)
+    (define-key map (kbd "M-j") 'bowser-mode-jump)
     map)
   "Keymap for bowser")
 
@@ -91,13 +92,23 @@
       (setq hidden-variable "-a"))
   (bowser-mode-refresh))
 
+(defun bowser-mode-jump ()
+  (interactive)
+  (setq find-command (concat "find " home-directory "  -type d"))
+  (setq output (shell-command-to-string find-command))
+  (setq output (split-string output "\n"))
+  (setq output (remove "" output))
+  (setq current-directory (completing-read "File: " output))
+  (bowser-mode-refresh))
+
 (defun bowser-mode ()
   "A simple file browser"
   (switch-to-buffer "bowser")
   (interactive)
   (kill-all-local-variables)
   (use-local-map bowser-mode-map)
-  (setq current-directory (concat "/home/" (user-login-name) "/"))
+  (setq home-directory (concat "/home/" (user-login-name) "/"))
+  (setq current-directory home-directory)
   (setq hidden-variable "-1")
   (bowser-mode-refresh)
   (setq major-mode 'bowser-mode)
