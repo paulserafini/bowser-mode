@@ -2,16 +2,18 @@
 
 (defvar bowser-mode-map
   (let ((map (make-keymap)))
-    (define-key map (kbd "<return>") 'open-selection)
-    (define-key map (kbd "M-p") 'bowser-mode-paste)
-    (define-key map (kbd "M-c") 'bowser-mode-copy)
-    (define-key map (kbd "M-m") 'bowser-mode-mark)
-    (define-key map (kbd "M-x") 'bowser-mode-delete)
-    (define-key map (kbd "<backspace>") 'bowser-mode-ascend)
-    (define-key map (kbd "M-e") 'bowser-mode-show-hidden)
-    (define-key map (kbd "M-j") 'bowser-mode-jump)
+    (define-key map (kbd "<return>") 'bowser-open)
+    (define-key map (kbd "M-p") 'bowser-paste)
+    (define-key map (kbd "M-c") 'bowser-copy)
+    (define-key map (kbd "M-m") 'bowser-mark)
+    (define-key map (kbd "M-x") 'bowser-delete)
+    (define-key map (kbd "<backspace>") 'bowser-ascend)
+    (define-key map (kbd "M-h") 'bowser-toggle-hidden)
+    (define-key map (kbd "M-j") 'bowser-jump)
     (define-key map (kbd "M-o") 'bowser-open-with)
     (define-key map (kbd "M-r") 'bowser-rename)
+    (define-key map (kbd "M-b") 'bowser-create-bookmark)
+    (define-key map (kbd "M-B") 'bowser-open-bookmark)
     map)
   "Keymap for bowser")
 
@@ -25,7 +27,7 @@
   (setq application (read-string "Application:"))
   (start-process "" nil application selection))
 
-(defun open-selection ()
+(defun bowser-open ()
   "Open the selected file or directory"
 
   (interactive)
@@ -46,7 +48,7 @@
 
   (when (string= last-character "/")
     (setq current-directory selection)
-    (bowser-mode-refresh))
+    (bowser-refresh))
 
   (when (string= extension "pdf")
     (start-process "" nil "zathura" selection))
@@ -60,7 +62,7 @@
   (when (member extension videos)
     (start-process "" nil "mpv" selection)))
 
-(defun bowser-mode-delete ()
+(defun bowser-delete ()
   "Delete the marked file(s), with prompt"
 
   (interactive)
@@ -69,19 +71,22 @@
 	(if (string= (substring file -1) "/")
 	    (start-process "" nil "rm" "-r" file)
 	    (start-process "" nil "rm" file))))
-  (bowser-mode-refresh))
+  (bowser-refresh))
 
-(defun bowser-mode-refresh ()
+(defun bowser-refresh ()
   "Refresh the directory"
 
   (interactive)
   (erase-buffer)
   (call-process "ls" nil t nil hidden-variable "-p" "--group-directories-first" current-directory)
+
+  ;; color directories---shouldn't have to unhighlight and rehighlight like this
   (unhighlight-regexp ".*\/")
   (highlight-regexp ".*\/" "font-lock-function-name-face")
+
   (goto-char (point-min)))
 
-(defun bowser-mode-mark ()
+(defun bowser-mark ()
   "Mark files for copying, moving, or deleting"
 
   (interactive)
@@ -96,7 +101,7 @@
 	   (if (re-search-backward "^" nil t)
 	       (replace-match "  ")))))
 
-(defun bowser-mode-copy ()
+(defun bowser-copy ()
   "Add marked files to the copy list"
 
   (interactive)
@@ -104,7 +109,7 @@
   (setq marked '())
   (setq bowser-mv-list '()))
 
-(defun bowser-mode-cut ()
+(defun bowser-cut ()
   "Add marked files to the cut list"
 
   (interactive)
@@ -112,7 +117,7 @@
   (setq marked '())
   (setq bowser-cp-list '()))
 
-(defun bowser-mode-paste ()
+(defun bowser-paste ()
   "Paste copied or cut files to current directory"
 
   (interactive)
@@ -121,7 +126,7 @@
   (dolist (file bowser-mv-list)
   (start-process "" nil "mv" file current-directory))
   (setq bowser-mv-list '())
-  (bowser-mode-refresh))
+  (bowser-refresh))
 
 (defun bowser-rename ()
   "Rename the selected file"
@@ -133,25 +138,25 @@
   (setq selection (concat current-directory selection))
   (setq new-name (concat current-directory new-name))
   (start-process "" nil "mv" selection new-name)
-  (bowser-mode-refresh))
+  (bowser-refresh))
 
-(defun bowser-mode-ascend ()
+(defun bowser-ascend ()
   "Move to the parent directory"
 
   (interactive)
   (setq current-directory (file-name-directory (directory-file-name current-directory)))
-  (bowser-mode-refresh))
+  (bowser-refresh))
 
-(defun bowser-mode-show-hidden ()
+(defun bowser-toggle-hidden ()
   "Toggle hidden files"
 
   (interactive)
   (if (string= hidden-variable "-A")
       (setq hidden-variable "-1")
       (setq hidden-variable "-A"))
-  (bowser-mode-refresh))
+  (bowser-refresh))
 
-(defun bowser-mode-jump ()
+(defun bowser-jump ()
   "Fuzzy search all the directories under the home folder"
 
   (interactive)
@@ -161,7 +166,7 @@
   (setq output (remove "" output))
   (setq current-directory (completing-read "File: " output))
   (setq current-directory (concat current-directory "/"))
-  (bowser-mode-refresh))
+  (bowser-refresh))
 
 (defun bowser-open-bookmark ()
   "Open a bookmarked directory"
@@ -169,7 +174,7 @@
   (interactive)
   (setq current-directory (completing-read "File: " bookmarks))
   (setq current-directory (concat current-directory "/"))
-  (bowser-mode-refresh))
+  (bowser-refresh))
 
 (defun bowser-create-bookmark ()
   "Add the current directory to the bookmarks list"
@@ -190,7 +195,7 @@
   (setq hidden-variable "-1")
   (setq marked '())
   (setq bookmarks '())
-  (bowser-mode-refresh)
+  (bowser-refresh)
   (setq major-mode 'bowser-mode)
   (setq mode-name "bowser")
   (run-hooks 'bowser-mode-hook)
