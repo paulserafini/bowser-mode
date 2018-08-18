@@ -55,6 +55,7 @@
   (let ((selected-file (thing-at-point 'line t))
 	(last-character nil)
 	(extension nil)
+        (archives '("zip" "rar"))
 	(images '("jpeg" "jpg" "png"))
 	(text '("csv" "el" "epub" "org" "R" "sh" "tex" "txt"))
 	(videos '("avi" "mkv" "mp4")))
@@ -74,6 +75,11 @@
   (when (string= extension "pdf")
     (start-process "" nil "zathura" selected-file))
 
+  (when (member extension archives)
+    (start-process "" nil "aunpack" "-X" bowser-directory selected-file)
+    (sleep-for 1)
+    (bowser-refresh))
+
   (when (member extension text)
     (find-file-other-window selected-file))
 
@@ -87,11 +93,12 @@
   "Delete the marked file(s), with prompt"
 
   (interactive)
-  (if (y-or-n-p "Are you sure you want to delete the marked files?")
+  (when (y-or-n-p "Are you sure you want to delete the marked files?")
       (dolist (file bowser-marked)
 	(if (string= (substring file -1) "/")
 	    (start-process "" nil "rm" "-r" file)
 	    (start-process "" nil "rm" file))))
+  (sleep-for 1)
   (bowser-refresh))
 
 (defun bowser-refresh ()
