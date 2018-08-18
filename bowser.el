@@ -16,8 +16,15 @@
     (define-key map (kbd "M-r") 'bowser-rename)
     (define-key map (kbd "M-b") 'bowser-create-bookmark)
     (define-key map (kbd "M-B") 'bowser-open-bookmark)
+    (define-key map (kbd "M-t") 'bowser-open-terminal)
     map)
   "Keymap for bowser")
+
+(defun bowser-open-terminal ()
+  "Open a terminal in the present directory"
+
+  (interactive)
+  (start-process "" nil "urxvt" "-cd" bowser-directory))
 
 (defun bowser-new-directory ()
   "Create a under directory under the current one"
