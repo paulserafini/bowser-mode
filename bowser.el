@@ -211,7 +211,7 @@
 
   (interactive)
   (setq bowser-directory (completing-read "Choose a bookmark: " bowser-bookmarks))
-  (setq bowser-directory (concat bowser-directory "/"))
+  ;;(setq bowser-directory (concat bowser-directory "/"))
   (bowser-refresh))
 
 (defun bowser-create-bookmark ()
