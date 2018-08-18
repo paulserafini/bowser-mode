@@ -5,6 +5,7 @@
     (define-key map (kbd "<return>") 'bowser-open)
     (define-key map (kbd "M-p") 'bowser-paste)
     (define-key map (kbd "M-c") 'bowser-copy)
+    (define-key map (kbd "M-n") 'bowser-new-directory)
     (define-key map (kbd "M-m") 'bowser-toggle-mark)
     (define-key map (kbd "M-x") 'bowser-delete)
     (define-key map (kbd "<backspace>") 'bowser-ascend)
@@ -16,6 +17,16 @@
     (define-key map (kbd "M-B") 'bowser-open-bookmark)
     map)
   "Keymap for bowser")
+
+(defun bowser-new-directory ()
+  "Create a under directory under the current one"
+
+  (interactive)
+  (let ((new-directory nil))
+  (setq new-directory (read-string "Enter an name for the new directory: "))
+  (setq new-directory (concat bowser-directory new-directory))
+  (start-process "" nil "mkdir" new-directory))
+  (bowser-refresh))
 
 (defun bowser-open-with ()
   "Open the selected file with a specified application"
@@ -128,9 +139,9 @@
 
   (interactive)
   (dolist (file bowser-copied-files)
-  (start-process "" nil "cp" file bowser-directory))
+  (start-process "" nil "cp" "-n" file bowser-directory))
   (dolist (file bowser-cut-files)
-  (start-process "" nil "mv" file bowser-directory))
+  (start-process "" nil "mv" "-n" file bowser-directory))
   (setq bowser-cut-files '())
   (bowser-refresh))
 
@@ -146,7 +157,7 @@
   (setq new-name (read-string "New name: " selected-file))
   (setq selected-file (concat bowser-directory selected-file))
   (setq new-name (concat bowser-directory new-name))
-  (start-process "" nil "mv" selected-file new-name)
+  (start-process "" nil "mv" "-n" selected-file new-name)
   (bowser-refresh)))
 
 (defun bowser-ascend ()
@@ -175,7 +186,7 @@
   (setq find-output (shell-command-to-string find-command))
   (setq find-output (split-string find-output "\n"))
   (setq find-output (remove "" find-output))
-  (setq bowser-directory (completing-read "File: " find-output))
+  (setq bowser-directory (completing-read "Choose a directory: " find-output))
   (setq bowser-directory (concat bowser-directory "/"))
   (bowser-refresh)))
 
@@ -183,7 +194,7 @@
   "Open a bookmarked directory"
 
   (interactive)
-  (setq bowser-directory (completing-read "File: " bowser-bookmarks))
+  (setq bowser-directory (completing-read "Choose a bookmark: " bowser-bookmarks))
   (setq bowser-directory (concat bowser-directory "/"))
   (bowser-refresh))
 
@@ -192,7 +203,6 @@
 
   (interactive)
   (add-to-list 'bowser-bookmarks bowser-directory))
-
 
 (defun bowser-mode ()
   "A simple file browser"

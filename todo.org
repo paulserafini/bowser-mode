@@ -1,2 +1,0 @@
- - Give prompt if pasting will overwrite something
- - Create directory function
