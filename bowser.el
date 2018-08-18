@@ -77,7 +77,7 @@
 
   (when (member extension archives)
     (start-process "" nil "aunpack" "-X" bowser-directory selected-file)
-    (sleep-for 1)
+    ;;(sleep-for 1)
     (bowser-refresh))
 
   (when (member extension text)
@@ -197,9 +197,8 @@
   "Fuzzy search all the directories under the home folder"
 
   (interactive)
-  (let ((find-commant (concat "find " bowser-home "  -type d"))
+  (let ((find-command (concat "find ~ -type d"))
 	(find-output nil))
-  (setq find-command (concat "find " bowser-home "  -type d"))
   (setq find-output (shell-command-to-string find-command))
   (setq find-output (split-string find-output "\n"))
   (setq find-output (remove "" find-output))
