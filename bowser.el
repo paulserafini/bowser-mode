@@ -92,6 +92,7 @@
   (interactive)
   (erase-buffer)
   (call-process "ls" nil t nil bowser-hidden-switch "-p" "--group-directories-first" bowser-directory)
+  (setq header-line-format bowser-directory)
 
   ;; color directories---shouldn't have to unhighlight and rehighlight like this
   (unhighlight-regexp ".*\/")
@@ -216,6 +217,7 @@
   (setq bowser-hidden-switch "-1")
   (setq bowser-marked '())
   (setq bowser-bookmarks '())
+  (setq header-line-format bowser-directory)
   (bowser-refresh)
   (setq major-mode 'bowser-mode)
   (setq mode-name "bowser")
