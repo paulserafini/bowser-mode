@@ -1,1 +1,1 @@
- - Can't unmark unless the cursor is ahead of the two spaces
+ - Create terminal in current directory

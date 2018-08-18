@@ -4,7 +4,8 @@
   (let ((map (make-keymap)))
     (define-key map (kbd "<return>") 'bowser-open)
     (define-key map (kbd "M-p") 'bowser-paste)
-    (define-key map (kbd "M-c") 'bowser-copy)
+    (define-key map (kbd "M-y") 'bowser-copy)
+    (define-key map (kbd "M-d") 'bowser-cut)
     (define-key map (kbd "M-n") 'bowser-new-directory)
     (define-key map (kbd "M-m") 'bowser-toggle-mark)
     (define-key map (kbd "M-x") 'bowser-delete)
@@ -113,6 +114,7 @@
   ;; mark or unmark the file
   (if (string= (substring selected-file-name 0 2) "  ")
       (progn (setq bowser-marked (remove selected-file-path bowser-marked))
+	     (end-of-line)
 	     (if (re-search-backward "^  " nil t)
 		 (replace-match "")))
     (progn (add-to-list 'bowser-marked selected-file-path)
