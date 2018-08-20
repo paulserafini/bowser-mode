@@ -1,6 +1,2 @@
  - The screen is refreshed before files are done deleting or unpacking; at the moment there is a 1 second pause before refreshing, but that won't work for large files
    - Use sentinels to check whether the process has finished?
- - Decide whether to mark or unmark based on whether the file is in the marked list, rather than by whether there are two spaces at the beginning
- - Sort by file size, modified, etc.?
- - Mark and unmark all, invert marks?
- - Bind refresh?
