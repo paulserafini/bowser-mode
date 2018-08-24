@@ -20,11 +20,65 @@
     map)
   "Keymap for bowser")
 
-(defun bowser-open-terminal ()
-  "Open a terminal in the present directory"
+(defun bowser-ascend ()
+  "Move to the parent directory"
 
   (interactive)
-  (start-process "" nil "urxvt" "-cd" bowser-directory))
+  (setq bowser-directory (file-name-directory (directory-file-name bowser-directory)))
+  (setq bowser-marked '())
+  (bowser-refresh))
+
+(defun bowser-copy ()
+  "Add marked files to the copy list"
+
+  (interactive)
+  (setq bowser-copied-files bowser-marked)
+  (setq bowser-marked '())
+  (setq bowser-cut-files '()))
+
+(defun bowser-create-bookmark ()
+  "Add the current directory to the bookmarks list"
+
+  (interactive)
+  (add-to-list 'bowser-bookmarks bowser-directory))
+
+(defun bowser-cut ()
+  "Add marked files to the cut list"
+
+  (interactive)
+  (setq bowser-cut-files bowser-marked)
+  (setq bowser-marked '())
+  (setq bowser-copied-files '()))
+
+(defun bowser-delete ()
+  "Delete the marked file(s), with prompt"
+
+  (interactive)
+  (when (y-or-n-p "Are you sure you want to delete the marked files?")
+    (dolist (file bowser-marked)
+      (if (string= (substring file -1) "/")
+	  (start-process "" nil "rm" "-r" "-v" file)
+	(start-process "" nil "rm" "-v" file))))
+
+  ;; TODO: Make process list auto revert / refresh
+  (when (> (length (process-list)) 1)
+    (list-processes))
+
+  ;; TODO: Wait until the above processes are completed to refresh
+  (bowser-refresh))
+
+(defun bowser-jump ()
+  "Fuzzy search all the directories under the home folder"
+
+  (interactive)
+  (let ((find-command (concat "find ~ -type d"))
+	(find-output nil))
+    (setq find-output (shell-command-to-string find-command))
+    (setq find-output (split-string find-output "\n"))
+    (setq find-output (remove "" find-output))
+    (setq bowser-directory (completing-read "Choose a directory: " find-output))
+    (setq bowser-directory (concat bowser-directory "/"))
+    (bowser-refresh)))
 
 (defun bowser-new-directory ()
   "Create a under directory under the current one"
@@ -36,17 +90,6 @@
     (start-process "" nil "mkdir" new-directory))
   (bowser-refresh))
 
-(defun bowser-open-with ()
-  "Open the selected file with a specified application"
-
-  (interactive)
-  (let ((selected-file (thing-at-point 'line t))
-	(application nil))
-    (setq selected-file (replace-regexp-in-string "\n" "" selected-file))
-    (setq selected-file (concat bowser-directory selected-file))
-    (setq application (read-string "Enter an application: "))
-    (start-process "" nil application selected-file)))
-
 (defun bowser-open ()
   "Open the selected file or directory"
 
@@ -54,11 +97,7 @@
 
   (let ((selected-file (thing-at-point 'line t))
 	(last-character nil)
-	(extension nil)
-	(archives '("zip" "rar" "gz"))
-	(images '("jpeg" "jpg" "png"))
-	(text '("csv" "el" "epub" "org" "R" "sh" "tex" "txt" "md"))
-	(videos '("avi" "mkv" "mp4")))
+	(extension nil))
 
     ;; get the full path of the selected file
     (setq selected-file (replace-regexp-in-string "\n" "" selected-file))
@@ -73,53 +112,55 @@
       (setq bowser-marked '())
       (bowser-refresh))
 
-    (when (string= extension "pdf")
-      (start-process "" nil "zathura" selected-file))
+    (when (not (string= last-character "/"))
+      (start-process "" nil "mimeopen" selected-file))))
 
-    (when (member extension archives)
-      (start-process "" nil "urxvt" "-e" "aunpack" "-X" bowser-directory selected-file)
-      (bowser-refresh))
-
-    (when (member extension text)
-      (find-file-other-window selected-file))
-
-    (when (member extension images)
-      (start-process "" nil "sxiv" selected-file))
-
-    (when (member extension videos)
-      (start-process "" nil "mpv" selected-file))))
-
-(defun bowser-delete ()
-  "Delete the marked file(s), with prompt"
+(defun bowser-open-bookmark ()
+  "Open a bookmarked directory"
 
   (interactive)
-  (when (y-or-n-p "Are you sure you want to delete the marked files?")
-    (dolist (file bowser-marked)
-      (if (string= (substring file -1) "/")
-	  (start-process "" nil "rm" "-r" file)
-	(start-process "" nil "rm" file))))
-  (sleep-for 1)
+  (setq bowser-directory (completing-read "Choose a bookmark: " bowser-bookmarks))
   (bowser-refresh))
 
-(defun bowser-sort-change ()
-  "Change the order of the listing"
+(defun bowser-open-terminal ()
+  "Open a terminal in the present directory"
 
   (interactive)
-  (setq bowser-sort (read-string "Sort by name (default), size (-S), modified (-t) , accessed (-u), or extension (-X):"))
-  (when (not (member bowser-sort '("-S" "-t" "-u" "-X")))
-    (setq bowser-sort "-1"))
-  (bowser-refresh))
+  (start-process "" nil "urxvt" "-cd" bowser-directory))
 
-(defun bowser-sort-reverse ()
-  "Change the order of the listing"
+(defun bowser-open-with ()
+  "Open the selected file with a specified application"
 
   (interactive)
-  (if (string= 
-  (setq bowser-sort (read-string "Choose -S (size), -t (modified), -u (accessed) or -X (extension):"))
-  (when (not (member bowser-sort '("-S" "-t" "-u" "-X")))
-    (setq bowser-sort "-1"))
-  (bowser-refresh))
+  (let ((selected-file (thing-at-point 'line t))
+	(application nil))
+    (setq selected-file (replace-regexp-in-string "\n" "" selected-file))
+    (setq selected-file (concat bowser-directory selected-file))
+    (setq application (read-string "Enter an application: "))
+    (start-process "" nil application selected-file)))
 
+(defun bowser-paste ()
+  "Paste copied or cut files to current directory"
+
+  (interactive)
+
+  (dolist (file bowser-copied-files)
+    (if (string= (substring file -1) "/")
+	(start-process "" nil "cp" "-v" "-r" "-n" file bowser-directory)
+      (start-process "" nil "cp" "-n" "-v" file bowser-directory)))
+
+  (dolist (file bowser-cut-files)
+    (if (string= (substring file -1) "/")
+	(start-process "" nil "mv" "-v" "-n" file bowser-directory)
+      (start-process "" nil "mv" "-n" file bowser-directory)))
+  (setq bowser-cut-files '())
+
+  ;; TODO: make the process list auto refresh/revert
+  (when (> (length (process-list)) 1)
+    (list-processes))
+
+  ;; TODO: Wait until the above processes are completed to refresh
+  (bowser-refresh))
 
 (defun bowser-refresh ()
   "Refresh the directory"
@@ -135,132 +176,79 @@
 
   (goto-char (point-min)))
 
-  (defun bowser-toggle-mark ()
-    "Mark files for copying, moving, or deleting"
+(defun bowser-rename ()
+  "Rename the selected file"
+
+  (interactive)
+  (let ((selected-file (thing-at-point 'line t))
+	(new-name nil))
 
     (interactive)
-    (let ((selected-file-name (thing-at-point 'line t)))
+    (setq selected-file (replace-regexp-in-string "\n" "" selected-file))
+    (setq new-name (read-string "New name: " selected-file))
+    (setq selected-file (concat bowser-directory selected-file))
+    (setq new-name (concat bowser-directory new-name))
+    (start-process "" nil "mv" "-n" selected-file new-name)
+    (bowser-refresh)))
 
-      ;; get full path of highlighted file
-      (setq selected-file-name (replace-regexp-in-string "\n" "" selected-file-name))
-      (setq selected-file-path (concat bowser-directory selected-file-name))
+(defun bowser-sort-change ()
+  "Change the order of the listing"
 
-      ;; mark or unmark the file
-      (if (string= (substring selected-file-name 0 2) "  ")
-	  (progn (setq bowser-marked (remove selected-file-path bowser-marked))
-		 (end-of-line)
-		 (if (re-search-backward "^  " nil t)
-		     (replace-match "")))
-	(progn (add-to-list 'bowser-marked selected-file-path)
-	       (if (re-search-backward "^" nil t)
-		   (replace-match "  "))))
-      (next-line)))
+  (interactive)
+  (setq bowser-sort (read-string "Sort by name (default), size (-S), modified (-t) , accessed (-u), or extension (-X):"))
+  (when (not (member bowser-sort '("-S" "-t" "-u" "-X")))
+    (setq bowser-sort "-1"))
+  (bowser-refresh))
 
-  (defun bowser-copy ()
-    "Add marked files to the copy list"
+(defun bowser-toggle-hidden ()
+  "Toggle hidden files"
 
-    (interactive)
-    (setq bowser-copied-files bowser-marked)
-    (setq bowser-marked '())
-    (setq bowser-cut-files '()))
+  (interactive)
+  (if (string= bowser-hidden "-A")
+      (setq bowser-hidden "-1")
+    (setq bowser-hidden "-A"))
+  (bowser-refresh))
 
-  (defun bowser-cut ()
-    "Add marked files to the cut list"
+(defun bowser-toggle-mark ()
+  "Mark files for copying, moving, or deleting"
 
-    (interactive)
-    (setq bowser-cut-files bowser-marked)
-    (setq bowser-marked '())
-    (setq bowser-copied-files '()))
+  (interactive)
+  (let ((selected-file-name (thing-at-point 'line t)))
 
-  (defun bowser-paste ()
-    "Paste copied or cut files to current directory"
+    ;; get full path of highlighted file
+    (setq selected-file-name (replace-regexp-in-string "\n" "" selected-file-name))
+    (setq selected-file-path (concat bowser-directory selected-file-name))
 
-    (interactive)
-    (dolist (file bowser-copied-files)
-      (start-process "" nil "cp" "-n" file bowser-directory))
-    (dolist (file bowser-cut-files)
-      (start-process "" nil "mv" "-n" file bowser-directory))
-    (setq bowser-cut-files '())
-    (bowser-refresh))
+    ;; mark or unmark the file
+    (if (string= (substring selected-file-name 0 2) "  ")
+	(progn (setq bowser-marked (remove selected-file-path bowser-marked))
+	       (end-of-line)
+	       (if (re-search-backward "^  " nil t)
+		   (replace-match "")))
+      (progn (add-to-list 'bowser-marked selected-file-path)
+	     (if (re-search-backward "^" nil t)
+		 (replace-match "  "))))
+    (next-line)))
 
-  (defun bowser-rename ()
-    "Rename the selected file"
+(defun bowser-mode ()
+  "A simple file browser"
 
-    (interactive)
-    (let ((selected-file (thing-at-point 'line t))
-	  (new-name nil))
+  (switch-to-buffer "bowser")
+  (interactive)
+  (kill-all-local-variables)
+  (use-local-map bowser-mode-map)
+  (setq bowser-home (concat "/home/" (user-login-name) "/"))
+  (setq bowser-directory bowser-home)
+  (setq bowser-hidden "-1")
+  (setq bowser-sort "-1")
+  (setq bowser-marked '())
+  (setq bowser-bookmarks '())
+  (setq header-line-format bowser-directory)
+  (bowser-refresh)
+  (setq major-mode 'bowser-mode)
+  (setq mode-name "bowser")
+  (run-hooks 'bowser-mode-hook)
+  (linum-mode)
+  (hl-line-mode))
 
-      (interactive)
-      (setq selected-file (replace-regexp-in-string "\n" "" selected-file))
-      (setq new-name (read-string "New name: " selected-file))
-      (setq selected-file (concat bowser-directory selected-file))
-      (setq new-name (concat bowser-directory new-name))
-      (start-process "" nil "mv" "-n" selected-file new-name)
-      (bowser-refresh)))
-
-  (defun bowser-ascend ()
-    "Move to the parent directory"
-
-    (interactive)
-    (setq bowser-directory (file-name-directory (directory-file-name bowser-directory)))
-    (setq bowser-marked '())
-    (bowser-refresh))
-
-  (defun bowser-toggle-hidden ()
-    "Toggle hidden files"
-
-    (interactive)
-    (if (string= bowser-hidden "-A")
-	(setq bowser-hidden "-1")
-      (setq bowser-hidden "-A"))
-    (bowser-refresh))
-
-  (defun bowser-jump ()
-    "Fuzzy search all the directories under the home folder"
-
-    (interactive)
-    (let ((find-command (concat "find ~ -type d"))
-	  (find-output nil))
-      (setq find-output (shell-command-to-string find-command))
-      (setq find-output (split-string find-output "\n"))
-      (setq find-output (remove "" find-output))
-      (setq bowser-directory (completing-read "Choose a directory: " find-output))
-      (setq bowser-directory (concat bowser-directory "/"))
-      (bowser-refresh)))
-
-  (defun bowser-open-bookmark ()
-    "Open a bookmarked directory"
-
-    (interactive)
-    (setq bowser-directory (completing-read "Choose a bookmark: " bowser-bookmarks))
-    ;;(setq bowser-directory (concat bowser-directory "/"))
-    (bowser-refresh))
-
-  (defun bowser-create-bookmark ()
-    "Add the current directory to the bookmarks list"
-
-    (interactive)
-    (add-to-list 'bowser-bookmarks bowser-directory))
-
-  (defun bowser-mode ()
-    "A simple file browser"
-
-    (switch-to-buffer "bowser")
-    (interactive)
-    (kill-all-local-variables)
-    (use-local-map bowser-mode-map)
-    (setq bowser-home (concat "/home/" (user-login-name) "/"))
-    (setq bowser-directory bowser-home)
-    (setq bowser-hidden "-1")
-    (setq bowser-sort "-1")
-    (setq bowser-marked '())
-    (setq bowser-bookmarks '())
-    (setq header-line-format bowser-directory)
-    (bowser-refresh)
-    (setq major-mode 'bowser-mode)
-    (setq mode-name "bowser")
-    (run-hooks 'bowser-mode-hook)
-    (linum-mode)
-    (hl-line-mode))
-
-  (provide 'bowser-mode)
+(provide 'bowser-mode)

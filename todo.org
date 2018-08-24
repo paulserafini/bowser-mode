@@ -1,2 +1,2 @@
- - The screen is refreshed before files are done deleting or unpacking; at the moment there is a 1 second pause before refreshing, but that won't work for large files
-   - Use sentinels to check whether the process has finished?
+ - Make the process list auto refresh
+ - Don't refresh the current directory until pasting/deleting processes are finished
