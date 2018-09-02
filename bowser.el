@@ -65,6 +65,7 @@
     (list-processes))
 
   ;; TODO: Wait until the above processes are completed to refresh
+  (setq bowser-current-line (line-number-at-pos))
   (bowser-refresh))
 
 (defun bowser-jump ()
@@ -174,7 +175,7 @@
   (unhighlight-regexp ".*\/")
   (highlight-regexp ".*\/" "font-lock-function-name-face")
 
-  (goto-char (point-min)))
+  (goto-line bowser-current-line))
 
 (defun bowser-rename ()
   "Rename the selected file"
@@ -189,6 +190,7 @@
     (setq selected-file (concat bowser-directory selected-file))
     (setq new-name (concat bowser-directory new-name))
     (start-process "" nil "mv" "-n" selected-file new-name)
+    (setq bowser-current-line (line-number-at-pos))
     (bowser-refresh)))
 
 (defun bowser-sort-change ()
@@ -240,6 +242,7 @@
   (setq bowser-home (concat "/home/" (user-login-name) "/"))
   (setq bowser-directory bowser-home)
   (setq bowser-hidden "-1")
+  (setq bowser-current-line 1)
   (setq bowser-sort "-1")
   (setq bowser-marked '())
   (setq bowser-bookmarks '())
