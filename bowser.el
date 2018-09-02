@@ -26,7 +26,7 @@
   (interactive)
   (setq bowser-directory (file-name-directory (directory-file-name bowser-directory)))
   (setq bowser-marked '())
-  (bowser-refresh))
+  (bowser-refresh 1))
 
 (defun bowser-copy ()
   "Add marked files to the copy list"
@@ -65,8 +65,7 @@
     (list-processes))
 
   ;; TODO: Wait until the above processes are completed to refresh
-  (setq bowser-current-line (line-number-at-pos))
-  (bowser-refresh))
+  (bowser-refresh (line-number-at-pos)))
 
 (defun bowser-jump ()
   "Fuzzy search all the directories under the home folder"
@@ -79,7 +78,7 @@
     (setq find-output (remove "" find-output))
     (setq bowser-directory (completing-read "Choose a directory: " find-output))
     (setq bowser-directory (concat bowser-directory "/"))
-    (bowser-refresh)))
+    (bowser-refresh 1)))
 
 (defun bowser-new-directory ()
   "Create a under directory under the current one"
@@ -89,7 +88,7 @@
     (setq new-directory (read-string "Enter an name for the new directory: "))
     (setq new-directory (concat bowser-directory new-directory))
     (start-process "" nil "mkdir" new-directory))
-  (bowser-refresh))
+  (bowser-refresh (line-number-at-pos)))
 
 (defun bowser-open ()
   "Open the selected file or directory"
@@ -111,7 +110,7 @@
     (when (string= last-character "/")
       (setq bowser-directory selected-file)
       (setq bowser-marked '())
-      (bowser-refresh))
+      (bowser-refresh 1))
 
     (when (not (string= last-character "/"))
       (start-process "" nil "mimeopen" selected-file))))
@@ -121,7 +120,7 @@
 
   (interactive)
   (setq bowser-directory (completing-read "Choose a bookmark: " bowser-bookmarks))
-  (bowser-refresh))
+  (bowser-refresh 1))
 
 (defun bowser-open-terminal ()
   "Open a terminal in the present directory"
@@ -161,9 +160,9 @@
     (list-processes))
 
   ;; TODO: Wait until the above processes are completed to refresh
-  (bowser-refresh))
+  (bowser-refresh (line-number-at-pos)))
 
-(defun bowser-refresh ()
+(defun bowser-refresh (line-to-go-to)
   "Refresh the directory"
 
   (interactive)
@@ -175,7 +174,7 @@
   (unhighlight-regexp ".*\/")
   (highlight-regexp ".*\/" "font-lock-function-name-face")
 
-  (goto-line bowser-current-line))
+  (goto-line line-to-go-to))
 
 (defun bowser-rename ()
   "Rename the selected file"
@@ -190,8 +189,7 @@
     (setq selected-file (concat bowser-directory selected-file))
     (setq new-name (concat bowser-directory new-name))
     (start-process "" nil "mv" "-n" selected-file new-name)
-    (setq bowser-current-line (line-number-at-pos))
-    (bowser-refresh)))
+    (bowser-refresh (line-number-at-pos))))
 
 (defun bowser-sort-change ()
   "Change the order of the listing"
@@ -200,7 +198,7 @@
   (setq bowser-sort (read-string "Sort by name (default), size (-S), modified (-t) , accessed (-u), or extension (-X):"))
   (when (not (member bowser-sort '("-S" "-t" "-u" "-X")))
     (setq bowser-sort "-1"))
-  (bowser-refresh))
+  (bowser-refresh 1))
 
 (defun bowser-toggle-hidden ()
   "Toggle hidden files"
@@ -209,7 +207,7 @@
   (if (string= bowser-hidden "-A")
       (setq bowser-hidden "-1")
     (setq bowser-hidden "-A"))
-  (bowser-refresh))
+  (bowser-refresh 1))
 
 (defun bowser-toggle-mark ()
   "Mark files for copying, moving, or deleting"
@@ -242,12 +240,11 @@
   (setq bowser-home (concat "/home/" (user-login-name) "/"))
   (setq bowser-directory bowser-home)
   (setq bowser-hidden "-1")
-  (setq bowser-current-line 1)
   (setq bowser-sort "-1")
   (setq bowser-marked '())
   (setq bowser-bookmarks '())
   (setq header-line-format bowser-directory)
-  (bowser-refresh)
+  (bowser-refresh 1)
   (setq major-mode 'bowser-mode)
   (setq mode-name "bowser")
   (run-hooks 'bowser-mode-hook)
