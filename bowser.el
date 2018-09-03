@@ -170,13 +170,14 @@
     (setq selected-file (replace-regexp-in-string "\n" "" selected-file))
     (setq selected-file (concat bowser-directory selected-file))
     (setq mimetype (shell-command-to-string (concat "mimetype -b " selected-file)))
-    ;;(when (string= mimetype "image/jpeg")
+    (setq mimetype (nth 0 (split-string mimetype "/")))
+    (when (string= mimetype "image")
       (switch-to-buffer-other-window "bowser-preview")
       (erase-buffer)
       (insert-image (create-image selected-file 'imagemagick nil :max-height (window-pixel-height) :max-width (window-pixel-width)))
       (fit-window-to-buffer)
       (switch-to-buffer-other-window "bowser")
-      ));;)
+      )))
 
 (defun bowser-refresh (line-to-go-to)
   "Refresh the directory"
