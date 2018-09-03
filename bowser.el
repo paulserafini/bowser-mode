@@ -173,7 +173,7 @@
     ;;(when (string= mimetype "image/jpeg")
       (switch-to-buffer-other-window "bowser-preview")
       (erase-buffer)
-      (insert-image (create-image selected-file 'imagemagick nil :width 100))
+      (insert-image (create-image selected-file 'imagemagick nil :max-height (window-pixel-height) :max-width (window-pixel-width)))
       (fit-window-to-buffer)
       (switch-to-buffer-other-window "bowser")
       ));;)
