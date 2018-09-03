@@ -11,12 +11,14 @@
     (define-key map (kbd "M-x") 'bowser-delete)
     (define-key map (kbd "<backspace>") 'bowser-ascend)
     (define-key map (kbd "M-h") 'bowser-toggle-hidden)
-    (define-key map (kbd "M-j") 'bowser-jump)
+    (define-key map (kbd "M-g") 'bowser-jump)
     (define-key map (kbd "M-o") 'bowser-open-with)
     (define-key map (kbd "M-r") 'bowser-rename)
     (define-key map (kbd "M-b") 'bowser-create-bookmark)
     (define-key map (kbd "M-B") 'bowser-open-bookmark)
     (define-key map (kbd "M-t") 'bowser-open-terminal)
+    (define-key map (kbd "M-j") 'bowser-move-down)
+    (define-key map (kbd "M-k") 'bowser-move-up)
     map)
   "Keymap for bowser")
 
@@ -79,6 +81,16 @@
     (setq bowser-directory (completing-read "Choose a directory: " find-output))
     (setq bowser-directory (concat bowser-directory "/"))
     (bowser-refresh 1)))
+
+(defun bowser-move-down ()
+  (interactive)
+  (next-line)
+  (bowser-preview-image))
+
+(defun bowser-move-up ()
+  (interactive)
+  (previous-line)
+  (bowser-preview-image))
 
 (defun bowser-new-directory ()
   "Create a under directory under the current one"
