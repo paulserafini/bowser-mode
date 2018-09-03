@@ -187,7 +187,7 @@
       (switch-to-buffer-other-window "bowser-preview")
       (erase-buffer)
       (insert-image (create-image selected-file 'imagemagick nil :max-height (window-pixel-height) :max-width (window-pixel-width)))
-      (fit-window-to-buffer)
+      ;;(fit-window-to-buffer)
       (switch-to-buffer-other-window "bowser")
       )))
 

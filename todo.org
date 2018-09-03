@@ -1,4 +1,3 @@
  - Make the process list auto refresh
  - Don't refresh the current directory until pasting/deleting processes are finished
- - Keep preview buffer at a fixed size, so it doesn't ratchet up
  - Add text and pdf preview
