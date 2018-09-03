@@ -162,6 +162,22 @@
   ;; TODO: Wait until the above processes are completed to refresh
   (bowser-refresh (line-number-at-pos)))
 
+(defun bowser-preview-image ()
+
+  (interactive)
+  (let ((selected-file (thing-at-point 'line t))
+	(mimetype nil))
+    (setq selected-file (replace-regexp-in-string "\n" "" selected-file))
+    (setq selected-file (concat bowser-directory selected-file))
+    (setq mimetype (shell-command-to-string (concat "mimetype -b " selected-file)))
+    ;;(when (string= mimetype "image/jpeg")
+      (switch-to-buffer-other-window "bowser-preview")
+      (erase-buffer)
+      (insert-image (create-image selected-file 'imagemagick nil :width 100))
+      (fit-window-to-buffer)
+      (switch-to-buffer-other-window "bowser")
+      ));;)
+
 (defun bowser-refresh (line-to-go-to)
   "Refresh the directory"
 
