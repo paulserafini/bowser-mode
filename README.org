@@ -1,2 +1,29 @@
-# bowser-mode
-A file browser for Emacs
+* bowser-mode
+
+This is a simple file browser for Emacs.
+
+* Installation
+
+To install bowser-mode, put bowser.el in a directory which is included in your load path, then add the following line to your init file:
+
+#+BEGIN_EXAMPLE
+(load "epub")
+#+END_EXAMPLE
+
+* Usage
+
+  | C-c C-Backspace | Move up a directory                        |
+  | C-c C-Return    | Open file/directory                        |
+  | C-c C-b C-c     | Open a bookmark                            |
+  | C-c C-b C-o     | Create a bookmark                          |
+  | C-c C-d         | Cut file/directory                         |
+  | C-c C-h         | Toggle hidden files                        |
+  | C-c C-j         | Jump to a directory                        |
+  | C-c C-m         | Mark or unmark the selected file/directory |
+  | C-c C-n         | Create a new directory                     |
+  | C-c C-o         | Open-with                                  |
+  | C-c C-p         | Paste                                      |
+  | C-c C-r         | Rename selection                           |
+  | C-c C-t         | Open a terminal in current direcotry       |
+  | C-c C-x         | Delete file/directory                      |
+  | C-c C-y         | Copy file/directory                        |
